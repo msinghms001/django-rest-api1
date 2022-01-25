@@ -24,7 +24,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny,IsAuthenticated
 import json
 from rest_framework.authtoken.serializers import AuthTokenSerializer
-
+from django.core.mail import EmailMessage,EmailMultiAlternatives
+from django.core import mail
 # class ListAp(ListAPIView):
 #     queryset = User.objects.all()
 #     serializer_class = serializers.SignupSer
@@ -51,11 +52,9 @@ class RegisterAPI(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        # token=Token.objects.create(user=user)
-        # print('token is ...',token,'and ',token.key)
         resp={
-        "user":serializers.UserSerializer(user, context=self.get_serializer_context()).data,
-        # "token": token.key
+            'message':'user created!'
+        # "user":serializers.UserSerializer(user, context=self.get_serializer_context()).data,
         }
         return Response(resp)
 
@@ -75,28 +74,71 @@ class Loginuser(GenericAPIView):
         login(request, user)
         return super().post(request, format=None)
 
+class UpdatePass(APIView):
+    def post(self,request,format=None):
+        username=request.data.get('username')
+        new_pass=request.data.get('new_pass')
+        resp={}
+        try:
+            user=User.objects.get(username=username)
+            user.set_password(new_pass)
+            user.save()
+            resp['message']='password updated successfully'
+        except:
+            resp['message']='problem updating password'
         
+        return Response(resp)
 
-    def post(self):
-        pass
-
-
-
+        
 
 class Forgot(APIView):
     permission_classes = [AllowAny]
 
     def get(self,request):
         mail=request.GET.get('mail')
-        return Response({
         
-        'message':'reset mail sent! to '+mail
-        
-        })
+        obj=User.objects.filter(email=mail)
+        resp={}
+        if obj.exists():
+            try:
+                token=Token.objects.create(user=obj[0])
+                subject, from_email, to = 'Your Token', 'hpathomepc@gmail.com', mail
+                text_content = 'This is an week message.'
+                html_content = '<p>Your password reset code is</p>'
+                html_content+=f'<br/><i> {token.key}</i>'
+                msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send()               
+                resp['message']='reset mail sent! to '+mail
+
+            except Exception as e:
+                resp['message']='possibly token was already created or failed with reason:'+str(e) 
+           
+        else:
+            resp['message']='mail was NOT sent'
+
+        return Response(resp)
 
 class Reset(APIView):
     permission_classes = [AllowAny]
     def get(self,request):
-        reqBody = json.loads(request.body)
-        otp_code=reqBody['user_reset_hash']
-        return Response({'message':'reset ok'})
+        otp_token=request.data.get('otp_token')
+        new_pass=request.data.get('new_pass')
+        
+        resp={}
+        try:
+            dbTok=Token.objects.filter(key=otp_token)
+            if dbTok.exists():
+                user=dbTok[0].user
+                user.set_password(new_pass)
+                user.save()
+                dbTok[0].delete()
+                resp['message']='deleted success'
+            
+            else:
+                resp['message']='no such token or user'
+
+
+        except:
+            resp['message']='wrong otp input'
+        return Response(resp)

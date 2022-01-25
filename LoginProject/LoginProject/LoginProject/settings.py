@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'myapp',
     'rest_framework',
     'corsheaders',
-    'rest_framework.authtoken'
+    # 'rest_framework.authtoken'
 
 ]
 
@@ -134,9 +134,3 @@ REST_FRAMEWORK = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
-EMAIL_HOST='smtp.gmail.com'
-EMAIL_PORT=587
-EMAIL_HOST_USER='finlandpara@gmail.com'
-EMAIL_HOST_PASSWORD='Just4Funk@ll'
-EMAIL_USE_TLS=True
-EMAIL_TIMEOUT=15

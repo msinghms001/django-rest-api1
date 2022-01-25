@@ -22,7 +22,6 @@ urlpatterns = [
     path('register2/',views.RegisterAPI.as_view()),
     path('',views.TestApi.as_view()),
     path('login2/',views.Loginuser.as_view()),
-    path('update_pass/',views.UpdatePass.as_view()),
     path('tokenLogin/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
