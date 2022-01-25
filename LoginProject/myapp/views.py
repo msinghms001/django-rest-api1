@@ -53,7 +53,7 @@ class RegisterAPI(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         resp={
-            'message':'user created!'
+            'message':'user registeration successful!'
         # "user":serializers.UserSerializer(user, context=self.get_serializer_context()).data,
         }
         return Response(resp)
@@ -121,7 +121,7 @@ class Forgot(APIView):
 
 class Reset(APIView):
     permission_classes = [AllowAny]
-    def get(self,request):
+    def post(self,request):
         otp_token=request.data.get('otp_token')
         new_pass=request.data.get('new_pass')
         
@@ -133,7 +133,7 @@ class Reset(APIView):
                 user.set_password(new_pass)
                 user.save()
                 dbTok[0].delete()
-                resp['message']='deleted success'
+                resp['message']='Reset successfully'
             
             else:
                 resp['message']='no such token or user'
